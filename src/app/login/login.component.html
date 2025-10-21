@@ -1,23 +1,21 @@
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="card shadow p-4" style="width: 400px; border-radius: 1rem;">
     <h3 class="text-center mb-4">Prijava</h3>
-    <form>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="mb-3">
         <label for="email" class="form-label">Email adresa</label>
-        <input type="email" class="form-control" id="email" placeholder="Unesite email" required>
+        <input id="email" type="email" formControlName="email" class="form-control" placeholder="email@raf.rs">
       </div>
 
       <div class="mb-3">
         <label for="password" class="form-label">Lozinka</label>
-        <input type="password" class="form-control" id="password" placeholder="Unesite lozinku" required>
+        <input id="password" type="password" formControlName="password" class="form-control" placeholder="Unesite lozinku">
       </div>
 
-      <button type="submit" class="btn btn-primary w-100">Prijavi se</button>
+      <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
 
-      <div class="text-center mt-3">
-        <small class="text-muted">Nemate nalog? Kontaktirajte administratora.</small>
-      </div>
+      <button type="submit" class="btn btn-primary w-100" [disabled]="form.invalid">Prijavi se</button>
     </form>
   </div>
 </div>
-

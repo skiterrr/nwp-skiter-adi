@@ -1,0 +1,29 @@
+<h2 class="mb-3">Korisnici</h2>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Ime</th>
+      <th>Prezime</th>
+      <th>Email</th>
+      <th>Dozvole</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let u of users; let i = index">
+      <td>{{ i + 1 }}</td>
+      <td>{{ u.firstName }}</td>
+      <td>{{ u.lastName }}</td>
+      <td>{{ u.email }}</td>
+      <td>
+        <ng-container *ngIf="u.permissions?.length; else noPerms">
+          <span *ngFor="let p of u.permissions" class="badge bg-primary me-1 mb-1">{{ p }}</span>
+        </ng-container>
+        <ng-template #noPerms><span class="text-muted">—</span></ng-template>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
