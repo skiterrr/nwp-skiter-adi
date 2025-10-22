@@ -9,6 +9,7 @@
       <th>Prezime</th>
       <th>Email</th>
       <th>Dozvole</th>
+      <th style="width: 160px;">Akcije</th>
     </tr>
     </thead>
     <tbody>
@@ -22,6 +23,12 @@
           <span *ngFor="let p of u.permissions" class="badge bg-primary me-1 mb-1">{{ p }}</span>
         </ng-container>
         <ng-template #noPerms><span class="text-muted">—</span></ng-template>
+      </td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-primary" (click)="onEdit(u)">Uredi</button>
+          <button class="btn btn-sm btn-outline-danger" (click)="onDelete(u)">Obrisi</button>
+        </div>
       </td>
     </tr>
     </tbody>

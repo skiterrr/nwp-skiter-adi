@@ -1,0 +1,57 @@
+<h2 class="mb-3">Uredi korisnika</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="card shadow-sm p-4">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Ime</label>
+      <input class="form-control" formControlName="firstName" />
+      <div class="text-danger small" *ngIf="form.get('firstName')?.touched && form.get('firstName')?.invalid">
+        Obavezno polje.
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Prezime</label>
+      <input class="form-control" formControlName="lastName" />
+      <div class="text-danger small" *ngIf="form.get('lastName')?.touched && form.get('lastName')?.invalid">
+        Obavezno polje
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" formControlName="email" />
+      <div class="text-danger small" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+        Unesite ispravan email
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Lozinka</label>
+      <input type="password" class="form-control" formControlName="password" />
+      <div class="text-danger small" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+        Lozinka je obavezna
+      </div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label d-block mb-2">Dozvole</label>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2" formArrayName="permissions">
+        <div class="col" *ngFor="let perm of allPermissions; let i = index">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" [formControlName]="i" [id]="'perm'+i" />
+            <label class="form-check-label" [for]="'perm'+i">{{ perm }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="alert alert-danger py-2" *ngIf="error">{{ error }}</div>
+      <button class="btn btn-primary" type="submit" [disabled]="form.invalid || saving">
+        {{ saving ? 'cuvam...' : 'Sacuvaj izmene' }}
+      </button>
+      <a routerLink="/users" class="btn btn-outline-secondary ms-2">Otkazi</a>
+    </div>
+  </div>
+</form>

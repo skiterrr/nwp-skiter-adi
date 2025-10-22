@@ -35,6 +35,7 @@ export class AuthGuard implements CanActivate, CanDeactivate<unknown> {
       this.router.navigate(['/users']);
       return false;
     }
+
     if(isLoggedIn && currentUrl === "/auto-redirect") {
       this.router.navigate(['/users'])
     }

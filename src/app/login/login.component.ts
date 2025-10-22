@@ -27,7 +27,6 @@ export class LoginComponent {
 
     if (success) {
       this.router.navigate(['/users']);
-      this.error = 'Uspeo'
     } else {
       this.error = 'Pogresan email ili lozinka';
     }
