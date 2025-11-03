@@ -38,7 +38,6 @@ export class MachineCreateComponent {
     this.submitting = true;
 
     try {
-      // Backend bi inače dodelio vlasnika i stanje.
       this.store.create({
         id: 0,
         name: this.form.value.name!,

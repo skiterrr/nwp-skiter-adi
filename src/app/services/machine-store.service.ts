@@ -24,7 +24,6 @@ export class MachineStoreService {
       return MOCK_MACHINES.filter(m => m.active);
     }
 
-    // Običan korisnik vidi samo svoje mašine
     return MOCK_MACHINES.filter(m => m.ownerEmail === user.email && m.active);
   }
 

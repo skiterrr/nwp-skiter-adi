@@ -34,7 +34,6 @@ export class MachinesSearchComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // inicijalno bez filtera: sve vidljive
     this.rows = this.store.listVisible();
   }
 
@@ -70,7 +69,6 @@ export class MachinesSearchComponent implements OnInit {
     this.rows = this.store.listVisible();
   }
 
-  // 🚀 upali mašinu
   start(machine: Machine) {
     this.error = '';
     this.submitting = true;
@@ -83,7 +81,6 @@ export class MachinesSearchComponent implements OnInit {
       .finally(() => this.submitting = false);
   }
 
-  // ❄️ ugasi mašinu
   stop(machine: Machine) {
     this.error = '';
     this.submitting = true;
@@ -96,7 +93,6 @@ export class MachinesSearchComponent implements OnInit {
       .finally(() => this.submitting = false);
   }
 
-  // 🔁 restartuj mašinu
   restart(machine: Machine) {
     this.error = '';
     this.submitting = true;
