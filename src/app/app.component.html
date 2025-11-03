@@ -26,6 +26,15 @@
         <li class="nav-item" *ngIf="auth.isLoggedIn">
           <a class="nav-link" routerLink="/users/new" routerLinkActive="active">Dodaj korisnika</a>
         </li>
+        <li class="nav-item" *ngIf="auth.isLoggedIn">
+          <a class="nav-link" routerLink="/machines" routerLinkActive="active">Masine</a>
+        </li>
+        <li class="nav-item" *ngIf="auth.isLoggedIn">
+          <a class="nav-link" routerLink="/machines/new" routerLinkActive="active">Nova masina</a>
+        </li>
+        <li class="nav-item" *ngIf="auth.isLoggedIn">
+          <a class="nav-link" routerLink="/errors" routerLinkActive="active">Greske</a>
+        </li>
       </ul>
 
       <div class="d-flex align-items-center">

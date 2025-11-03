@@ -1,0 +1,111 @@
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormBuilder } from '@angular/forms';
+import { Machine, MachineState } from '../../models/machine';
+import { MachineStoreService } from '../../services/machine-store.service';
+
+@Component({
+  selector: 'app-machines-search',
+  templateUrl: './machines-search.component.html',
+  styleUrls: ['./machines-search.component.css']
+})
+export class MachinesSearchComponent implements OnInit {
+
+  allStates = Object.values(MachineState);
+
+  form = this.fb.group({
+    name: [''],
+    ownerEmail: [''],
+    states: this.fb.array<boolean>(this.allStates.map(() => false)),
+    fromDate: [''],
+    toDate: ['']
+  });
+
+  submitting = false;
+  error = '';
+  rows = this.store.listVisible();
+
+  constructor(
+    private fb: FormBuilder,
+    private store: MachineStoreService
+  ) {}
+
+  get statesArray(): FormArray {
+    return this.form.get('states') as FormArray;
+  }
+
+  ngOnInit(): void {
+    // inicijalno bez filtera: sve vidljive
+    this.rows = this.store.listVisible();
+  }
+
+  onSubmit() {
+    this.error = '';
+    this.submitting = true;
+
+    try {
+      const v = this.form.value;
+      const selectedStates = this.allStates.filter((_, i) => this.statesArray.value[i]);
+      this.rows = this.store.search({
+        name: v.name ?? '',
+        ownerEmail: v.ownerEmail ?? '',
+        states: selectedStates,
+        fromDate: v.fromDate ?? '',
+        toDate: v.toDate ?? ''
+      });
+    } catch (e: any) {
+      this.error = e?.message ?? 'Greška pri pretrazi';
+    } finally {
+      this.submitting = false;
+    }
+  }
+
+  reset() {
+    this.form.reset({
+      name: '',
+      ownerEmail: '',
+      states: this.allStates.map(() => false),
+      fromDate: '',
+      toDate: ''
+    });
+    this.rows = this.store.listVisible();
+  }
+
+  // 🚀 upali mašinu
+  start(machine: Machine) {
+    this.error = '';
+    this.submitting = true;
+
+    this.store.start(machine.id)
+      .then(() => {
+        this.rows = this.store.listVisible();
+      })
+      .catch(err => this.error = err)
+      .finally(() => this.submitting = false);
+  }
+
+  // ❄️ ugasi mašinu
+  stop(machine: Machine) {
+    this.error = '';
+    this.submitting = true;
+
+    this.store.stop(machine.id)
+      .then(() => {
+        this.rows = this.store.listVisible();
+      })
+      .catch(err => this.error = err)
+      .finally(() => this.submitting = false);
+  }
+
+  // 🔁 restartuj mašinu
+  restart(machine: Machine) {
+    this.error = '';
+    this.submitting = true;
+
+    this.store.restart(machine.id)
+      .then(() => {
+        this.rows = this.store.listVisible();
+      })
+      .catch(err => this.error = err)
+      .finally(() => this.submitting = false);
+  }
+}

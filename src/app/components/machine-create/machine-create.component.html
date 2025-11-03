@@ -1,0 +1,20 @@
+<h2 class="mb-3">Nova mašina</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="card shadow-sm p-4">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <label class="form-label">Naziv mašine</label>
+      <input class="form-control" formControlName="name" placeholder="npr. CNC-11" />
+      <div class="text-danger small" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
+        Naziv je obavezan
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="alert alert-danger py-2" *ngIf="error">{{ error }}</div>
+      <button class="btn btn-primary" type="submit" [disabled]="form.invalid || submitting">
+        {{ submitting ? 'Kreiram...' : 'Kreiraj mašinu' }}
+      </button>
+    </div>
+  </div>
+</form>

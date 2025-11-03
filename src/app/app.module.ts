@@ -8,6 +8,9 @@ import {ReactiveFormsModule} from "@angular/forms";
 import { UsersListComponent } from './users/users-list/users-list.component';
 import { UserCreateComponent } from './users/user-create/user-create.component';
 import { UserEditComponent } from './users/user-edit/user-edit.component';
+import { MachinesSearchComponent } from './components/machines-search/machines-search.component';
+import { MachineCreateComponent } from './components/machine-create/machine-create.component';
+import { ErrorHistoryComponent } from './components/error-history/error-history.component';
 
 @NgModule({
   declarations: [
@@ -15,7 +18,10 @@ import { UserEditComponent } from './users/user-edit/user-edit.component';
     LoginComponent,
     UsersListComponent,
     UserCreateComponent,
-    UserEditComponent
+    UserEditComponent,
+    MachinesSearchComponent,
+    MachineCreateComponent,
+    ErrorHistoryComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,104 @@
+<h2 class="mb-3">Pretraga masina</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="card shadow-sm p-4 mb-3">
+  <div class="row g-3">
+
+    <div class="col-md-6">
+      <label class="form-label">Naziv</label>
+      <input class="form-control" formControlName="name" placeholder="npr. CNC" />
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Email</label>
+      <input class="form-control" formControlName="ownerEmail" placeholder="npr. pera@example.com" />
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label d-block mb-2">State</label>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2" formArrayName="states">
+        <div class="col" *ngFor="let s of allStates; let i = index">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" [formControlName]="i" [id]="'state'+i" />
+            <label class="form-check-label" [for]="'state'+i">{{ s }}</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-text mt-1">Moze vise state-ova odjednom</div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label d-block mb-2">Datum kreiranja</label>
+      <div class="row g-2">
+        <div class="col">
+          <input type="date" class="form-control" formControlName="fromDate" />
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="alert alert-danger py-2" *ngIf="error">{{ error }}</div>
+      <button class="btn btn-primary me-2" type="submit" [disabled]="submitting">
+        {{ submitting ? 'Filtritam...' : 'Filtriraj' }}
+      </button>
+      <button class="btn btn-outline-secondary" type="button" (click)="reset()">Ocisti</button>
+    </div>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Naziv</th>
+        <th scope="col">State</th>
+        <th scope="col">Vlasnik</th>
+        <th scope="col">Kreirana</th>
+        <th scope="col">Akcije</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let m of rows">
+        <td>{{ m.id }}</td>
+        <td>{{ m.name }}</td>
+        <td>
+          <span class="badge"
+                [class.text-bg-secondary]="m.state === 'OFF'"
+                [class.text-bg-success]="m.state === 'ON'"
+                [class.text-bg-warning]="m.state === 'BUSY'">
+            {{ m.state }}
+          </span>
+        </td>
+        <td>{{ m.ownerEmail }} ({{ m.ownerUserId }})</td>
+        <td>{{ m.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
+
+        <td>
+          <button class="btn btn-sm btn-success me-1"
+                  (click)="start(m)"
+                  [disabled]="submitting || m.state === 'ON' || m.state === 'BUSY'">
+            Upali
+          </button>
+          <button class="btn btn-sm btn-warning me-1"
+                  (click)="stop(m)"
+                  [disabled]="submitting || m.state === 'OFF' || m.state === 'BUSY'">
+            Ugasi
+          </button>
+          <button class="btn btn-sm btn-info"
+                  (click)="restart(m)"
+                  [disabled]="submitting || m.state !== 'ON'">
+            Restartuj
+          </button>
+        </td>
+      </tr>
+
+      <tr *ngIf="rows.length === 0">
+        <td colspan="6" class="text-center text-muted py-3">Nema rezultata.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Ostaje samo prikaz greške -->
+<div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>
