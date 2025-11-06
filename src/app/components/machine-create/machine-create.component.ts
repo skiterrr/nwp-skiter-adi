@@ -50,7 +50,7 @@ export class MachineCreateComponent {
 
       this.router.navigate(['/machines']);
     } catch (e: any) {
-      this.error = e?.message ?? 'Greška pri kreiranju mašine.';
+      this.error = e?.message ?? 'Greska pri kreiranju masine.';
     } finally {
       this.submitting = false;
     }

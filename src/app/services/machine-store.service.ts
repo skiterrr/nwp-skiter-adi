@@ -19,7 +19,6 @@ export class MachineStoreService {
     const user = this.auth.currentUser;
     if (!user) return [];
 
-    // Admin vidi sve mašine
     if (user.email === 'admin@raf.rs') {
       return MOCK_MACHINES.filter(m => m.active);
     }
@@ -69,40 +68,40 @@ export class MachineStoreService {
 
   destroy(id: number) {
     const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) throw new Error('Mašina nije pronađena.');
-    if (machine.state !== MachineState.OFF) throw new Error('Mašina mora biti ugašena da bi se uništila.');
+    if (!machine) throw new Error('Masina nije pronadjena.');
+    if (machine.state !== MachineState.OFF) throw new Error('Masina mora biti ugasena da bi se unistila.');
     machine.active = false;
   }
 
   start(id: number): Promise<void> {
     const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) return Promise.reject('Mašina nije pronađena.');
-    if (machine.state !== MachineState.OFF) return Promise.reject('Mašina već radi ili nije ugašena.');
+    if (!machine) return Promise.reject('Masina nije pronadjena.');
+    if (machine.state !== MachineState.OFF) return Promise.reject('Masina već radi ili nije ugasena.');
 
     machine.state = 'POKRETANJE...' as any;
-    console.log(`Paljenje mašine ${machine.name}...`);
+    console.log(`Paljenje masine ${machine.name}...`);
 
     return new Promise((resolve) => {
       setTimeout(() => {
         machine.state = MachineState.ON;
-        console.log(`Mašina ${machine.name} je uspešno upaljena.`);
+        console.log(`Masina ${machine.name} je uspesno upaljena.`);
         resolve();
-      }, 10000); // 10 sekundi simulacije
+      }, 10000);
     });
   }
 
   stop(id: number): Promise<void> {
     const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) return Promise.reject('Mašina nije pronađena.');
-    if (machine.state !== MachineState.ON) return Promise.reject('Mašina mora biti upaljena da bi se ugasila.');
+    if (!machine) return Promise.reject('Masina nije pronadjena.');
+    if (machine.state !== MachineState.ON) return Promise.reject('Masina mora biti upaljena da bi se ugasila.');
 
-    machine.state = 'GAŠENJE...' as any;
-    console.log(`Gašenje mašine ${machine.name}...`);
+    machine.state = 'GASENJE...' as any;
+    console.log(`Gasenje masine ${machine.name}...`);
 
     return new Promise((resolve) => {
       setTimeout(() => {
         machine.state = MachineState.OFF;
-        console.log(`Mašina ${machine.name} je uspešno ugašena.`);
+        console.log(`Masina ${machine.name} je uspesno ugasena.`);
         resolve();
       }, 10000);
     });
@@ -110,20 +109,20 @@ export class MachineStoreService {
 
   restart(id: number): Promise<void> {
     const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) return Promise.reject('Mašina nije pronađena.');
-    if (machine.state !== MachineState.ON) return Promise.reject('Mašina mora biti upaljena da bi se restartovala.');
+    if (!machine) return Promise.reject('Masina nije pronadjena.');
+    if (machine.state !== MachineState.ON) return Promise.reject('Masina mora biti upaljena da bi se restartovala.');
 
     machine.state = 'RESTARTOVANJE...' as any;
-    console.log(`Restartovanje mašine ${machine.name}...`);
+    console.log(`Restartovanje masine ${machine.name}...`);
 
     return new Promise((resolve) => {
       setTimeout(() => {
         machine.state = MachineState.OFF;
-        console.log(`Mašina ${machine.name} ugašena (1/2 restarta).`);
+        console.log(`Masina ${machine.name} ugasena (1/2 restarta).`);
 
         setTimeout(() => {
           machine.state = MachineState.ON;
-          console.log(`Mašina ${machine.name} ponovo upaljena.`);
+          console.log(`Masina ${machine.name} ponovo upaljena.`);
           resolve();
         }, 5000);
       }, 5000);

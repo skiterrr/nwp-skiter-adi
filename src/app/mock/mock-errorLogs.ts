@@ -6,7 +6,7 @@ export const MOCK_ERROR_LOGS: ErrorLog[] = [
     machineId: 2,
     machineName: 'CNC-11',
     operation: 'UPALI',
-    message: 'Mašina nije mogla da se pokrene jer je već bila uključena.',
+    message: 'Masina nije mogla da se pokrene jer je vec bila ukljucena.',
     date: '2025-10-29T10:21:00Z',
     ownerEmail: 'luka.mihajlovic@raf.rs'
   },
@@ -15,7 +15,7 @@ export const MOCK_ERROR_LOGS: ErrorLog[] = [
     machineId: 4,
     machineName: 'Server-1',
     operation: 'UGASI',
-    message: 'Neuspešno gašenje mašine zbog aktivnog procesa.',
+    message: 'Neuspesno gasenje masine zbog aktivnog procesa.',
     date: '2025-10-30T15:12:00Z',
     ownerEmail: 'ana.kostic@raf.rs'
   },
@@ -24,7 +24,7 @@ export const MOCK_ERROR_LOGS: ErrorLog[] = [
     machineId: 7,
     machineName: 'Test-Machine',
     operation: 'RESTART',
-    message: 'Restart neuspešan — mašina nije bila uključena.',
+    message: 'Restart neuspesan — masina nije bila ukljucena.',
     date: '2025-10-31T18:45:00Z',
     ownerEmail: 'stefan.dj@raf.rs'
   }

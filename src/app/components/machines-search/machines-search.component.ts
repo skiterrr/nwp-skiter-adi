@@ -52,7 +52,7 @@ export class MachinesSearchComponent implements OnInit {
         toDate: v.toDate ?? ''
       });
     } catch (e: any) {
-      this.error = e?.message ?? 'Greška pri pretrazi';
+      this.error = e?.message ?? 'Greska pri pretrazi';
     } finally {
       this.submitting = false;
     }
