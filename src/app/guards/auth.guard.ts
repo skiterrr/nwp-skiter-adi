@@ -1,5 +1,5 @@
 // src/app/guards/auth.guard.ts
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
@@ -8,8 +8,9 @@ import {
   RouterStateSnapshot,
   UrlTree
 } from '@angular/router';
-import { Observable } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import {Observable} from 'rxjs';
+import {AuthService} from '../services/auth.service';
+import {Permission} from "../models/permission";
 
 @Injectable({
   providedIn: 'root'
@@ -36,10 +37,19 @@ export class AuthGuard implements CanActivate, CanDeactivate<unknown> {
       return false;
     }
 
+    if(isLoggedIn && !this.auth.hasPermission(Permission.USER_CREATE) && currentUrl.startsWith('/users') && currentUrl.endsWith('edit')) {
+      this.router.navigate(['/users']);
+      return false;
+    }
+
+    if(isLoggedIn && !this.auth.hasPermission(Permission.USER_UPDATE) && currentUrl === '/users/:id/edit'){
+      this.router.navigate(['/users']);
+      return false;
+    }
+
     if(isLoggedIn && currentUrl === "/auto-redirect") {
       this.router.navigate(['/users'])
     }
-
     return true;
   }
 

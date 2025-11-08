@@ -1,6 +1,10 @@
 <h2 class="mb-3">Korisnici</h2>
 
-<div class="table-responsive">
+<div *ngIf="!canRead" class="alert alert-warning">
+  Nemate dozvolu za prikaz korisnika.
+</div>
+
+<div *ngIf="canRead" class="table-responsive">
   <table class="table table-striped table-hover align-middle">
     <thead class="table-dark">
     <tr>
@@ -9,7 +13,7 @@
       <th>Prezime</th>
       <th>Email</th>
       <th>Dozvole</th>
-      <th style="width: 160px;">Akcije</th>
+      <th *ngIf="canDelete || canUpdate" style="width: 160px;">Akcije</th>
     </tr>
     </thead>
     <tbody>
@@ -24,10 +28,10 @@
         </ng-container>
         <ng-template #noPerms><span class="text-muted">—</span></ng-template>
       </td>
-      <td>
+      <td *ngIf="canUpdate || canDelete">
         <div class="btn-group">
-          <button class="btn btn-sm btn-outline-primary" (click)="onEdit(u)">Uredi</button>
-          <button class="btn btn-sm btn-outline-danger" (click)="onDelete(u)">Obrisi</button>
+          <button *ngIf="canUpdate" class="btn btn-sm btn-outline-primary" (click)="onEdit(u)">Uredi</button>
+          <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="onDelete(u)">Obrisi</button>
         </div>
       </td>
     </tr>

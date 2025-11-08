@@ -1,8 +1,9 @@
 import {Component} from '@angular/core';
-import {MOCK_USERS} from "../../mock/mock-users";
 import {User} from "../../models/user";
 import {Router} from "@angular/router";
 import {UserStoreService} from "../../services/user-store.service";
+import {AuthService} from "../../services/auth.service";
+import {Permission} from "../../models/permission";
 
 @Component({
   selector: 'app-users-list',
@@ -12,11 +13,21 @@ import {UserStoreService} from "../../services/user-store.service";
 export class UsersListComponent {
   users: User[] = [];
 
+  canRead = false;
+  canUpdate = false;
+  canDelete = false;
+
   ngOnInit(): void {
-    this.users = this.store.list();
+    this.canRead = this.auth.hasPermission(Permission.USER_READ);
+    this.canUpdate = this.auth.hasPermission(Permission.USER_UPDATE);
+    this.canDelete = this.auth.hasPermission(Permission.USER_DELETE);
+
+    if (this.canRead) {
+      this.users = this.store.list();
+    }
   }
 
-  constructor(private router: Router, private store: UserStoreService) {
+  constructor(private router: Router, private store: UserStoreService, private auth: AuthService) {
   }
 
   loadUsers(){
@@ -31,4 +42,6 @@ export class UsersListComponent {
     this.store.delete(u.id);
     this.loadUsers();
   }
+
+  protected readonly Permission = Permission;
 }

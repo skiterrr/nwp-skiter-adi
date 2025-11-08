@@ -17,8 +17,8 @@ const routes: Routes = [
   { path: 'users/new', component: UserCreateComponent, canActivate: [AuthGuard] },
   { path: 'users/:id/edit', component: UserEditComponent, canActivate: [AuthGuard] },
   { path: 'machines', component: MachinesSearchComponent, canActivate: [AuthGuard]},
-  { path: 'machines/new', component: MachineCreateComponent },
-  { path: 'errors', component: ErrorHistoryComponent }
+  { path: 'machines/new', component: MachineCreateComponent, canActivate: [AuthGuard] },
+  { path: 'errors', component: ErrorHistoryComponent, canActivate: [AuthGuard] }
 
 ];
 

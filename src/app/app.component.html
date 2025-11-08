@@ -23,7 +23,7 @@
         <li class="nav-item" *ngIf="auth.isLoggedIn">
           <a class="nav-link" routerLink="/users" routerLinkActive="active">Korisnici</a>
         </li>
-        <li class="nav-item" *ngIf="auth.isLoggedIn">
+        <li class="nav-item" *ngIf="auth.isLoggedIn && auth.hasPermission(Permission.USER_CREATE)">
           <a class="nav-link" routerLink="/users/new" routerLinkActive="active">Dodaj korisnika</a>
         </li>
         <li class="nav-item" *ngIf="auth.isLoggedIn">
