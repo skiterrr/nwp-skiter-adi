@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Machine, MachineState } from '../models/machine';
 import { MOCK_MACHINES } from '../mock/mock-machines';
 import { AuthService } from './auth.service';
+import {MOCK_ERROR_LOGS} from "../mock/mock-errorLogs";
 
 export interface MachineSearchArgs {
   name?: string;
@@ -66,17 +67,17 @@ export class MachineStoreService {
     MOCK_MACHINES.push({ ...machine, id: newId });
   }
 
-  destroy(id: number) {
-    const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) throw new Error('Masina nije pronadjena.');
-    if (machine.state !== MachineState.OFF) throw new Error('Masina mora biti ugasena da bi se unistila.');
-    machine.active = false;
-  }
+  // destroy(id: number) {
+  //   const machine = MOCK_MACHINES.find(m => m.id === id);
+  //   if (!machine) throw new Error('Masina nije pronadjena.');
+  //   if (machine.state !== MachineState.OFF) throw new Error('Masina mora biti ugasena da bi se unistila.');
+  //   machine.active = false;
+  // }
 
   start(id: number): Promise<void> {
     const machine = MOCK_MACHINES.find(m => m.id === id);
     if (!machine) return Promise.reject('Masina nije pronadjena.');
-    if (machine.state !== MachineState.OFF) return Promise.reject('Masina već radi ili nije ugasena.');
+    if (machine.state !== MachineState.OFF) return Promise.reject('Masina vec radi ili nije ugasena.');
 
     machine.state = 'POKRETANJE...' as any;
     console.log(`Paljenje masine ${machine.name}...`);
@@ -128,4 +129,60 @@ export class MachineStoreService {
       }, 5000);
     });
   }
+
+  schedule(id: number, operation: 'START' | 'STOP' | 'RESTART', date: string) {
+    const executeTime = new Date(date).getTime();
+    const now = Date.now();
+
+    if (executeTime <= now)
+      throw new Error("Ne mozete zakazati operaciju u proslosti.");
+
+    const machine = MOCK_MACHINES.find(m => m.id === id);
+    if (!machine) throw new Error("Masina nije pronadjena.");
+
+    console.log(`Operacija ${operation} zakazana za ${machine.name} u ${date}`);
+
+    setTimeout(() => {
+      console.log("Pokrenuta zakazana operacija", operation);
+
+      let promise;
+
+      switch (operation) {
+        case 'START':
+          promise = this.start(id);
+          break;
+        case 'STOP':
+          promise = this.stop(id);
+          break;
+        case 'RESTART':
+          promise = this.restart(id);
+          break;
+      }
+
+      promise?.catch(msg => {
+        this.logError({
+          machineId: machine.id,
+          machineName: machine.name,
+          operation,
+          message: msg,
+          ownerEmail: machine.ownerEmail || "",
+          date: new Date().toISOString()
+        });
+      });
+
+    }, executeTime - now);
+  }
+
+  private logError(err: {
+    machineId: number,
+    machineName: string,
+    operation: string,
+    message: string,
+    date: string,
+    ownerEmail: string
+  }) {
+    const newId = Math.max(...MOCK_ERROR_LOGS.map(e => e.id)) + 1;
+    MOCK_ERROR_LOGS.push({ id: newId, ...err });
+  }
+
 }

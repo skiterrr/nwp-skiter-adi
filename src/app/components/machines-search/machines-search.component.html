@@ -74,21 +74,26 @@
         <td>{{ m.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
 
         <td>
-          <button class="btn btn-sm btn-success me-1"
+          <button class="btn btn-sm btn-success me-1" *ngIf="auth.hasPermission(Permission.MACHINE_START)"
                   (click)="start(m)"
                   [disabled]="submitting || m.state === 'ON' || m.state === 'BUSY'">
             Upali
           </button>
-          <button class="btn btn-sm btn-danger me-1"
+          <button class="btn btn-sm btn-danger me-1" *ngIf="auth.hasPermission(Permission.MACHINE_STOP)"
                   (click)="stop(m)"
                   [disabled]="submitting || m.state === 'OFF' || m.state === 'BUSY'">
             Ugasi
           </button>
-          <button class="btn btn-sm btn-info"
+          <button class="btn btn-sm btn-info" *ngIf="auth.hasPermission(Permission.MACHINE_RESTART)"
                   (click)="restart(m)"
                   [disabled]="submitting || m.state !== 'ON'">
             Restartuj
           </button>
+          <button class="btn btn-sm btn-outline-primary ms-1" *ngIf="auth.hasPermission(Permission.MACHINE_START)"
+                  (click)="openScheduler(m)">
+            Zakaži
+          </button>
+
         </td>
       </tr>
 
@@ -99,5 +104,26 @@
     </table>
   </div>
 </div>
+<div *ngIf="showScheduler" class="p-3 border rounded mt-3 bg-light">
+
+  <h5>Zakazivanje operacije za: {{ selectedMachine?.name }}</h5>
+
+  <label class="form-label mt-2">Operacija</label>
+  <select class="form-select" [(ngModel)]="scheduledOperation">
+    <option value="START">Upali</option>
+    <option value="STOP">Ugasi</option>
+    <option value="RESTART">Restartuj</option>
+  </select>
+
+  <label class="form-label mt-3">Datum i vreme</label>
+  <input type="datetime-local" class="form-control" [(ngModel)]="scheduledDate" />
+
+  <div class="mt-3">
+    <button class="btn btn-primary me-2" (click)="schedule()">Sacuvaj</button>
+    <button class="btn btn-secondary" (click)="closeScheduler()">Otkazi</button>
+  </div>
+
+</div>
+
 
 <div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>

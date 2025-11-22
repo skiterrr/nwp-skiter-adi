@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder } from '@angular/forms';
-import { Machine, MachineState } from '../../models/machine';
-import { MachineStoreService } from '../../services/machine-store.service';
+import {Component, OnInit} from '@angular/core';
+import {FormArray, FormBuilder} from '@angular/forms';
+import {Machine, MachineState} from '../../models/machine';
+import {MachineStoreService} from '../../services/machine-store.service';
+import {AuthService} from "../../services/auth.service";
+import {Permission} from "../../models/permission";
 
 @Component({
   selector: 'app-machines-search',
@@ -9,6 +11,15 @@ import { MachineStoreService } from '../../services/machine-store.service';
   styleUrls: ['./machines-search.component.css']
 })
 export class MachinesSearchComponent implements OnInit {
+
+  showScheduler = false;
+  selectedMachine: Machine | null = null;
+  scheduledOperation: 'START' | 'STOP' | 'RESTART' = 'START';
+  scheduledDate: string = '';
+
+
+  canSearch = false;
+
 
   allStates = Object.values(MachineState);
 
@@ -26,7 +37,8 @@ export class MachinesSearchComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private store: MachineStoreService
+    private store: MachineStoreService,
+    public auth: AuthService
   ) {}
 
   get statesArray(): FormArray {
@@ -35,6 +47,7 @@ export class MachinesSearchComponent implements OnInit {
 
   ngOnInit(): void {
     this.rows = this.store.listVisible();
+    this.canSearch = this.auth.hasPermission(Permission.MACHINE_SEARCH);
   }
 
   onSubmit() {
@@ -104,4 +117,33 @@ export class MachinesSearchComponent implements OnInit {
       .catch(err => this.error = err)
       .finally(() => this.submitting = false);
   }
+
+  openScheduler(m: Machine) {
+    this.selectedMachine = m;
+    this.scheduledOperation = 'START';
+    this.scheduledDate = '';
+    this.showScheduler = true;
+  }
+
+  closeScheduler() {
+    this.showScheduler = false;
+    this.selectedMachine = null;
+  }
+
+  schedule() {
+    if (!this.selectedMachine || !this.scheduledDate) {
+      this.error = 'Morate izabrati operaciju i datum.';
+      return;
+    }
+
+    this.store.schedule(
+      this.selectedMachine.id,
+      this.scheduledOperation,
+      this.scheduledDate
+    );
+
+    this.closeScheduler();
+  }
+
+  protected readonly Permission = Permission;
 }
