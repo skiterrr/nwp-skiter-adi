@@ -12,6 +12,7 @@
       <th>Ime</th>
       <th>Prezime</th>
       <th>Email</th>
+      <th>Aktivan</th>
       <th>Dozvole</th>
       <th *ngIf="canDelete || canUpdate" style="width: 160px;">Akcije</th>
     </tr>
@@ -22,6 +23,11 @@
       <td>{{ u.firstName }}</td>
       <td>{{ u.lastName }}</td>
       <td>{{ u.email }}</td>
+      <td>
+        <span class="badge" [ngClass]="u.active ? 'bg-success' : 'bg-secondary'">
+          {{ u.active ? 'DA' : 'NE' }}
+        </span>
+      </td>
       <td>
         <ng-container *ngIf="u.permissions?.length; else noPerms">
           <span *ngFor="let p of u.permissions" class="badge bg-primary me-1 mb-1">{{ p }}</span>

@@ -11,6 +11,8 @@ import { UserEditComponent } from './users/user-edit/user-edit.component';
 import { MachinesSearchComponent } from './components/machines-search/machines-search.component';
 import { MachineCreateComponent } from './components/machine-create/machine-create.component';
 import { ErrorHistoryComponent } from './components/error-history/error-history.component';
+import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
+import {AuthTokenInterceptor} from "./interceptor/auth.token.interceptor";
 
 @NgModule({
   declarations: [
@@ -27,9 +29,10 @@ import { ErrorHistoryComponent } from './components/error-history/error-history.
     BrowserModule,
     AppRoutingModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    HttpClientModule
   ],
-  providers: [],
-  bootstrap: [AppComponent, LoginComponent]
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthTokenInterceptor, multi: true }],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

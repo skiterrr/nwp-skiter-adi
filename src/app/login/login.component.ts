@@ -23,12 +23,23 @@ export class LoginComponent {
     if (this.form.invalid) return;
 
     const { email, password } = this.form.value;
-    const success = this.auth.login(email!, password!);
 
-    if (success) {
-      this.router.navigate(['/users']);
-    } else {
-      this.error = 'Pogresan email ili lozinka';
-    }
+    this.auth.login(email!, password!).subscribe({
+      next: () => {
+        this.auth.loadMe().subscribe({
+          next: () => this.router.navigate(['/users']),
+          error: () => this.router.navigate(['/users'])
+        });
+      },
+      error: (err) => {
+        if (err?.status === 401) {
+          this.error = 'Pogresan email ili lozinka';
+        } else if (err?.status === 403) {
+          this.error = 'Nalog nije aktivan';
+        } else {
+          this.error = 'Greska na serveru. Pokusaj ponovo.';
+        }
+      }
+    });
   }
 }

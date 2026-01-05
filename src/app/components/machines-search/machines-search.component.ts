@@ -90,7 +90,7 @@ export class MachinesSearchComponent implements OnInit {
       .then(() => {
         this.rows = this.store.listVisible();
       })
-      .catch(err => this.error = err)
+      .catch((err: string) => this.error = err)
       .finally(() => this.submitting = false);
   }
 
@@ -102,7 +102,7 @@ export class MachinesSearchComponent implements OnInit {
       .then(() => {
         this.rows = this.store.listVisible();
       })
-      .catch(err => this.error = err)
+      .catch((err: string) => this.error = err)
       .finally(() => this.submitting = false);
   }
 
@@ -114,7 +114,7 @@ export class MachinesSearchComponent implements OnInit {
       .then(() => {
         this.rows = this.store.listVisible();
       })
-      .catch(err => this.error = err)
+      .catch((err: string) => this.error = err)
       .finally(() => this.submitting = false);
   }
 

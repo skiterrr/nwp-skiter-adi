@@ -1,43 +1,73 @@
 import {Injectable} from '@angular/core';
 import {MOCK_USERS} from '../mock/mock-users';
 import {Permission} from "../models/permission";
+import {HttpClient} from "@angular/common/http";
+import {BehaviorSubject, map, Observable, tap} from "rxjs";
+import {UserDto} from "../models/UserDto";
+
+type LoginResponse = { token: string };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private currentUserKey = 'currentUserEmail';
-
-  login(email: string, password: string): boolean {
-    const user = MOCK_USERS.find(u => u.email === email && u.password === password);
-    if (!user) return false;
-
-    localStorage.setItem(this.currentUserKey, user.email);
-    return true;
-  }
-
-  logout() {
-    localStorage.removeItem(this.currentUserKey);
-  }
 
   get currentUser() {
     const email = localStorage.getItem(this.currentUserKey);
     return MOCK_USERS.find(u => u.email === email) || null;
   }
 
-  get isLoggedIn() {
-    return !!this.currentUser;
+  private me_ = new BehaviorSubject<UserDto | null>(null);
+
+  loadMe(): Observable<UserDto> {
+    return this.http.get<UserDto>(`${this.apiUrl}/auth/me`).pipe(
+      tap(me => this.me_.next(me))
+    );
   }
+
+  get me(): UserDto | null {
+    return this.me_.value;
+  }
+
+  // hasPermission(permission: Permission): boolean {
+  //   const user = this.currentUser;
+  //   if(!user) return false;
+  //   console.log("Ima permission: " + permission);
+  //   return user.permissions.length > 0 && user.permissions.includes(permission);
+  // }
 
   hasPermission(permission: Permission): boolean {
+    const me = this.me;
+    if (me) {
+      return (me.permissions ?? []).includes(permission);
+    }
+
     const user = this.currentUser;
-    if(!user) return false;
-    console.log("Ima permission: " + permission);
-    return user.permissions.length > 0 && user.permissions.includes(permission);
+    if (!user) return false;
+    return user.permissions?.includes(permission) ?? false;
   }
 
-  hasCreateUserPermission():boolean{
-    const user = this.currentUser;
-    if(!user) return false;
-    console.log("OVAJ USER IMA CREATE PERMISSION");
-    return user.permissions.length > 0 && user.permissions.includes(Permission.USER_CREATE);
+  private apiUrl = "http://localhost:8080";
+
+  constructor(private http: HttpClient) {}
+
+  login(email: string, password: string): Observable<boolean> {
+    return this.http
+      .post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password })
+      .pipe(
+        tap(res => localStorage.setItem("auth_token", res.token)),
+        map(() => true)
+      );
+  }
+
+  logout(): void {
+    localStorage.removeItem("auth_token");
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem("auth_token");
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getToken();
   }
 }

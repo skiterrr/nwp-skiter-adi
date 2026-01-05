@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate, CanDeactivate<unknown> {
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
-    const isLoggedIn = this.auth.isLoggedIn;
+    const isLoggedIn = this.auth.isLoggedIn();
     const currentUrl = state.url;
 
     if (!isLoggedIn && currentUrl !== '/login') {

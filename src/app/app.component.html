@@ -16,31 +16,31 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item" *ngIf="!auth.isLoggedIn">
+        <li class="nav-item" *ngIf="!auth.isLoggedIn()">
           <a class="nav-link" routerLink="/login" routerLinkActive="active">Prijava</a>
         </li>
 
-        <li class="nav-item" *ngIf="auth.isLoggedIn">
+        <li class="nav-item" *ngIf="auth.isLoggedIn()">
           <a class="nav-link" routerLink="/users" routerLinkActive="active">Korisnici</a>
         </li>
-        <li class="nav-item" *ngIf="auth.isLoggedIn && auth.hasPermission(Permission.USER_CREATE)">
+        <li class="nav-item" *ngIf="auth.isLoggedIn() && auth.hasPermission(Permission.USER_CREATE)">
           <a class="nav-link" routerLink="/users/new" routerLinkActive="active">Dodaj korisnika</a>
         </li>
-        <li class="nav-item" *ngIf="auth.isLoggedIn && auth.hasPermission(Permission.MACHINE_SEARCH)">
+        <li class="nav-item" *ngIf="auth.isLoggedIn() && auth.hasPermission(Permission.MACHINE_SEARCH)">
           <a class="nav-link" routerLink="/machines" routerLinkActive="active">Masine</a>
         </li>
-        <li class="nav-item" *ngIf="auth.isLoggedIn && auth.hasPermission(Permission.MACHINE_CREATE)">
+        <li class="nav-item" *ngIf="auth.isLoggedIn() && auth.hasPermission(Permission.MACHINE_CREATE)">
           <a class="nav-link" routerLink="/machines/new" routerLinkActive="active">Nova masina</a>
         </li>
-        <li class="nav-item" *ngIf="auth.isLoggedIn">
+        <li class="nav-item" *ngIf="auth.isLoggedIn()">
           <a class="nav-link" routerLink="/errors" routerLinkActive="active">Greske</a>
         </li>
       </ul>
 
       <div class="d-flex align-items-center">
-        <ng-container *ngIf="auth.isLoggedIn; else guest">
+        <ng-container *ngIf="auth.isLoggedIn(); else guest">
           <span class="text-light me-3">
-            {{ auth.currentUser?.firstName }} {{ auth.currentUser?.lastName }}
+            {{auth.me?.firstName}} {{auth.me?.lastName}}
           </span>
           <button class="btn btn-outline-light btn-sm" (click)="onLogout()">Odjava</button>
         </ng-container>

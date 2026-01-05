@@ -4,7 +4,7 @@
   <div class="row g-3">
     <div class="col-md-6">
       <label class="form-label">Ime</label>
-      <input class="form-control" formControlName="firstName" />
+      <input class="form-control" formControlName="firstName"/>
       <div class="text-danger small" *ngIf="form.get('firstName')?.touched && form.get('firstName')?.invalid">
         Obavezno polje.
       </div>
@@ -12,7 +12,7 @@
 
     <div class="col-md-6">
       <label class="form-label">Prezime</label>
-      <input class="form-control" formControlName="lastName" />
+      <input class="form-control" formControlName="lastName"/>
       <div class="text-danger small" *ngIf="form.get('lastName')?.touched && form.get('lastName')?.invalid">
         Obavezno polje
       </div>
@@ -20,17 +20,23 @@
 
     <div class="col-md-6">
       <label class="form-label">Email</label>
-      <input type="email" class="form-control" formControlName="email" />
-      <div class="text-danger small" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-        Unesite ispravan email
-      </div>
+      <input class="form-control" [value]="user?.email" disabled />
     </div>
 
     <div class="col-md-6">
       <label class="form-label">Lozinka</label>
       <input type="password" class="form-control" formControlName="password" />
-      <div class="text-danger small" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
-        Lozinka je obavezna
+      <div class="form-text">
+        Lozinku ostavi praznu ako ne zelis da je menjas.
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="active" formControlName="active" />
+        <label class="form-check-label" for="active">
+          Aktivan
+        </label>
       </div>
     </div>
 
@@ -39,7 +45,7 @@
       <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2" formArrayName="permissions">
         <div class="col" *ngFor="let perm of allPermissions; let i = index">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" [formControlName]="i" [id]="'perm'+i" />
+            <input class="form-check-input" type="checkbox" [formControlName]="i" [id]="'perm'+i"/>
             <label class="form-check-label" [for]="'perm'+i">{{ perm }}</label>
           </div>
         </div>
