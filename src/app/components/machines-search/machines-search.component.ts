@@ -4,6 +4,7 @@ import {Machine, MachineState} from '../../models/machine';
 import {MachineStoreService} from '../../services/machine-store.service';
 import {AuthService} from "../../services/auth.service";
 import {Permission} from "../../models/permission";
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-machines-search',
@@ -16,12 +17,13 @@ export class MachinesSearchComponent implements OnInit {
   selectedMachine: Machine | null = null;
   scheduledOperation: 'START' | 'STOP' | 'RESTART' = 'START';
   scheduledDate: string = '';
-
+  private sub?: Subscription;
 
   canSearch = false;
 
 
-  allStates = Object.values(MachineState);
+  allStates: Array<'ON' | 'OFF'> = ['ON', 'OFF'];
+
 
   form = this.fb.group({
     name: [''],
@@ -46,32 +48,76 @@ export class MachinesSearchComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.rows = this.store.listVisible();
+    this.sub = this.store.machines$.subscribe(list => {
+      this.rows = list
+    });
+    this.store.connectWs()
+    this.store.refresh()
     this.canSearch = this.auth.hasPermission(Permission.MACHINE_SEARCH);
   }
 
-  onSubmit() {
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+    this.store.disconnectWs();
+  }
+
+  // onSubmit() {
+  //   this.error = '';
+  //   this.submitting = true;
+  //
+  //   try {
+  //     const v = this.form.value;
+  //     const selectedStates = this.allStates.filter((_, i) => this.statesArray.value[i]);
+  //     this.rows = this.store.search({
+  //       name: v.name ?? '',
+  //       ownerEmail: v.ownerEmail ?? '',
+  //       states: selectedStates,
+  //       fromDate: v.fromDate ?? '',
+  //       toDate: v.toDate ?? ''
+  //     });
+  //   } catch (e: any) {
+  //     this.error = e?.message ?? 'Greska pri pretrazi';
+  //   } finally {
+  //     this.submitting = false;
+  //   }
+  // }
+  async onSubmit() {
     this.error = '';
     this.submitting = true;
 
     try {
       const v = this.form.value;
+
       const selectedStates = this.allStates.filter((_, i) => this.statesArray.value[i]);
-      this.rows = this.store.search({
-        name: v.name ?? '',
-        ownerEmail: v.ownerEmail ?? '',
-        states: selectedStates,
-        fromDate: v.fromDate ?? '',
-        toDate: v.toDate ?? ''
+
+      await this.store.refresh({
+        name: (v.name ?? '').trim() || undefined,
+        state: selectedStates.length ? selectedStates : undefined,
+        dateFrom: (v.fromDate ?? '') || undefined,
+        dateTo: (v.toDate ?? '') || undefined,
       });
+
+      // NEMA this.rows = ...
+      // rows se automatski puni preko this.store.machines$ subscribe-a
     } catch (e: any) {
-      this.error = e?.message ?? 'Greska pri pretrazi';
+      this.error = e?.error?.message ?? e?.message ?? 'Greska pri pretrazi';
     } finally {
       this.submitting = false;
     }
   }
 
-  reset() {
+
+  // reset() {
+  //   this.form.reset({
+  //     name: '',
+  //     ownerEmail: '',
+  //     states: this.allStates.map(() => false),
+  //     fromDate: '',
+  //     toDate: ''
+  //   });
+  //   this.rows = this.store.listVisible();
+  // }
+  async reset() {
     this.form.reset({
       name: '',
       ownerEmail: '',
@@ -79,7 +125,15 @@ export class MachinesSearchComponent implements OnInit {
       fromDate: '',
       toDate: ''
     });
-    this.rows = this.store.listVisible();
+
+    this.error = '';
+    this.submitting = true;
+
+    try {
+      await this.store.refresh(); // vrati sve (za usera ili admina)
+    } finally {
+      this.submitting = false;
+    }
   }
 
   start(machine: Machine) {

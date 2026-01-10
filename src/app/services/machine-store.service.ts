@@ -1,188 +1,142 @@
 import { Injectable } from '@angular/core';
-import { Machine, MachineState } from '../models/machine';
-import { MOCK_MACHINES } from '../mock/mock-machines';
-import { AuthService } from './auth.service';
-import {MOCK_ERROR_LOGS} from "../mock/mock-errorLogs";
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { Machine } from '../models/machine';
+import { MachineService, MachineSearchParams } from './machine.service';
+import { MachineWsService } from '../services/machine.ws.service';
 
+// ⬇⬇⬇ dodaj (kompatibilno sa starim komponentama)
 export interface MachineSearchArgs {
   name?: string;
-  ownerEmail?: string;
-  states?: MachineState[];
-  fromDate?: string;
-  toDate?: string;
+  ownerEmail?: string;              // više se NE koristi na backend-u, ignorišemo
+  states?: Array<'ON' | 'OFF'>;     // ranije MachineState[]
+  fromDate?: string;               // yyyy-mm-dd
+  toDate?: string;                 // yyyy-mm-dd
 }
+// ⬆⬆⬆
 
 @Injectable({ providedIn: 'root' })
 export class MachineStoreService {
-  constructor(private auth: AuthService) {}
+  private machinesSubject = new BehaviorSubject<Machine[]>([]);
+  machines$ = this.machinesSubject.asObservable();
 
-  listVisible(): Machine[] {
-    const user = this.auth.currentUser;
-    if (!user) return [];
+  private wsSub?: Subscription;
 
-    if (user.email === 'admin@raf.rs') {
-      return MOCK_MACHINES.filter(m => m.active);
-    }
+  constructor(
+    private api: MachineService,
+    private ws: MachineWsService
+  ) {}
 
-    return MOCK_MACHINES.filter(m => m.ownerEmail === user.email && m.active);
-  }
+  // ---------------- WS ----------------
 
-  search(args: MachineSearchArgs): Machine[] {
-    let list = this.listVisible();
-
-    if (args.name?.trim()) {
-      const q = args.name.trim().toLowerCase();
-      list = list.filter(m => m.name.toLowerCase().includes(q));
-    }
-
-    if (args.ownerEmail?.trim()) {
-      const q = args.ownerEmail.trim().toLowerCase();
-      list = list.filter(m => m.ownerEmail?.toLowerCase().includes(q));
-    }
-
-    if (args.states?.length) {
-      const set = new Set(args.states);
-      list = list.filter(m => set.has(m.state));
-    }
-
-    if (args.fromDate || args.toDate) {
-      const from = args.fromDate ? new Date(args.fromDate) : null;
-      const to = args.toDate ? new Date(args.toDate) : null;
-      list = list.filter(m => {
-        const created = new Date(m.createdAt);
-        return (!from || created >= from) && (!to || created <= to);
+  connectWs(): void {
+    this.ws.connect();
+    if (!this.wsSub) {
+      this.wsSub = this.ws.machineUpdates().subscribe(updated => {
+        const list = this.machinesSubject.value.slice();
+        const idx = list.findIndex(m => m.id === updated.id);
+        if (idx >= 0) {
+          list[idx] = { ...list[idx], ...updated };
+        } else {
+          list.unshift(updated);
+        }
+        this.machinesSubject.next(list);
       });
     }
-
-    return list;
-  }
-  create(machine: Machine) {
-    let list = this.listVisible();
-    let exist = list.some(m =>
-    m.name.trim().toLowerCase() === machine.name.trim().toLowerCase());
-    if (exist){
-      throw new Error(`Masina sa tim imenom vec postoji!`);
-    }
-    const newId = Math.max(...MOCK_MACHINES.map(m => m.id)) + 1;
-    MOCK_MACHINES.push({ ...machine, id: newId });
   }
 
-  // destroy(id: number) {
-  //   const machine = MOCK_MACHINES.find(m => m.id === id);
-  //   if (!machine) throw new Error('Masina nije pronadjena.');
-  //   if (machine.state !== MachineState.OFF) throw new Error('Masina mora biti ugasena da bi se unistila.');
-  //   machine.active = false;
-  // }
+  disconnectWs(): void {
+    this.wsSub?.unsubscribe();
+    this.wsSub = undefined;
+    this.ws.disconnect();
+  }
+
+  // -------------- REST core --------------
+
+  refresh(params?: MachineSearchParams): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.api.getMachines(params).subscribe({
+        next: (list) => {
+          this.machinesSubject.next(list);
+          resolve();
+        },
+        error: (err) => reject(err)
+      });
+    });
+  }
+
+  async create(name: string): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      this.api.createMachine(name).subscribe({
+        next: (m) => {
+          this.machinesSubject.next([m, ...this.machinesSubject.value]);
+          resolve();
+        },
+        error: (err) => reject(err)
+      });
+    });
+  }
 
   start(id: number): Promise<void> {
-    const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) return Promise.reject('Masina nije pronadjena.');
-    if (machine.state !== MachineState.OFF) return Promise.reject('Masina vec radi ili nije ugasena.');
-
-    machine.state = 'POKRETANJE...' as any;
-    console.log(`Paljenje masine ${machine.name}...`);
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        machine.state = MachineState.ON;
-        console.log(`Masina ${machine.name} je uspesno upaljena.`);
-        resolve();
-      }, 10000);
-    });
+    return this.callOp(() => this.api.start(id), id);
   }
 
   stop(id: number): Promise<void> {
-    const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) return Promise.reject('Masina nije pronadjena.');
-    if (machine.state !== MachineState.ON) return Promise.reject('Masina mora biti upaljena da bi se ugasila.');
-
-    machine.state = 'GASENJE...' as any;
-    console.log(`Gasenje masine ${machine.name}...`);
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        machine.state = MachineState.OFF;
-        console.log(`Masina ${machine.name} je uspesno ugasena.`);
-        resolve();
-      }, 10000);
-    });
+    return this.callOp(() => this.api.stop(id), id);
   }
 
   restart(id: number): Promise<void> {
-    const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) return Promise.reject('Masina nije pronadjena.');
-    if (machine.state !== MachineState.ON) return Promise.reject('Masina mora biti upaljena da bi se restartovala.');
+    return this.callOp(() => this.api.restart(id), id);
+  }
 
-    machine.state = 'RESTARTOVANJE...' as any;
-    console.log(`Restartovanje masine ${machine.name}...`);
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        machine.state = MachineState.OFF;
-        console.log(`Masina ${machine.name} ugasena (1/2 restarta).`);
-
-        setTimeout(() => {
-          machine.state = MachineState.ON;
-          console.log(`Masina ${machine.name} ponovo upaljena.`);
+  destroy(id: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.api.destroy(id).subscribe({
+        next: () => {
+          this.machinesSubject.next(this.machinesSubject.value.filter(m => m.id !== id));
           resolve();
-        }, 5000);
-      }, 5000);
+        },
+        error: (err) => reject(err)
+      });
     });
   }
 
+  // -------------- COMPAT LAYER (da stare komponente rade) --------------
+
+  // ✅ stare komponente zovu store.listVisible()
+  listVisible(): Machine[] {
+    return this.machinesSubject.value;
+  }
+
+
+  // ✅ za sada stub, dok ne odradimo backend scheduling
   schedule(id: number, operation: 'START' | 'STOP' | 'RESTART', date: string) {
-    const executeTime = new Date(date).getTime();
-    const now = Date.now();
+    // kad uradimo backend scheduling, ovde ide HTTP POST
+    console.warn('schedule() not implemented on backend yet', { id, operation, date });
+  }
 
-    if (executeTime <= now)
-      throw new Error("Ne mozete zakazati operaciju u proslosti.");
+  // -------------- helpers --------------
 
-    const machine = MOCK_MACHINES.find(m => m.id === id);
-    if (!machine) throw new Error("Masina nije pronadjena.");
+  private callOp(req: () => any, id: number): Promise<void> {
+    this.patchLocal(id, { operationInProgress: true });
 
-    console.log(`Operacija ${operation} zakazana za ${machine.name} u ${date}`);
-
-    setTimeout(() => {
-      console.log("Pokrenuta zakazana operacija", operation);
-
-      let promise;
-
-      switch (operation) {
-        case 'START':
-          promise = this.start(id);
-          break;
-        case 'STOP':
-          promise = this.stop(id);
-          break;
-        case 'RESTART':
-          promise = this.restart(id);
-          break;
-      }
-
-      promise?.catch(msg => {
-        this.logError({
-          machineId: machine.id,
-          machineName: machine.name,
-          operation,
-          message: msg,
-          ownerEmail: machine.ownerEmail || "",
-          date: new Date().toISOString()
-        });
+    return new Promise((resolve, reject) => {
+      req().subscribe({
+        next: () => resolve(),
+        error: (err: any) => {
+          this.patchLocal(id, { operationInProgress: false });
+          reject(err);
+        }
       });
-
-    }, executeTime - now);
+    });
   }
 
-  private logError(err: {
-    machineId: number,
-    machineName: string,
-    operation: string,
-    message: string,
-    date: string,
-    ownerEmail: string
-  }) {
-    const newId = Math.max(...MOCK_ERROR_LOGS.map(e => e.id)) + 1;
-    MOCK_ERROR_LOGS.push({ id: newId, ...err });
+  private patchLocal(id: number, patch: Partial<Machine>): void {
+    const list = this.machinesSubject.value.slice();
+    const idx = list.findIndex(m => m.id === id);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...patch };
+      this.machinesSubject.next(list);
+    }
   }
-
 }
+

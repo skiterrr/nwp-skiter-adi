@@ -66,22 +66,22 @@
           <span class="badge"
                 [class.text-bg-secondary]="m.state === 'OFF'"
                 [class.text-bg-success]="m.state === 'ON'"
-                [class.text-bg-warning]="m.state === 'BUSY'">
+                [class.text-bg-warning]="m.operationInProgress">
             {{ m.state }}
           </span>
         </td>
-        <td>{{ m.ownerEmail }} ({{ m.ownerUserId }})</td>
+<!--        <td>{{ m.ownerEmail }} ({{ m.ownerUserId }})</td>-->
         <td>{{ m.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
 
         <td>
           <button class="btn btn-sm btn-success me-1" *ngIf="auth.hasPermission(Permission.MACHINE_START)"
                   (click)="start(m)"
-                  [disabled]="submitting || m.state === 'ON' || m.state === 'BUSY'">
+                  [disabled]="submitting || m.state === 'ON' || m.operationInProgress">
             Upali
           </button>
           <button class="btn btn-sm btn-danger me-1" *ngIf="auth.hasPermission(Permission.MACHINE_STOP)"
                   (click)="stop(m)"
-                  [disabled]="submitting || m.state === 'OFF' || m.state === 'BUSY'">
+                  [disabled]="submitting || m.state === 'OFF' || m.operationInProgress">
             Ugasi
           </button>
           <button class="btn btn-sm btn-info" *ngIf="auth.hasPermission(Permission.MACHINE_RESTART)"
