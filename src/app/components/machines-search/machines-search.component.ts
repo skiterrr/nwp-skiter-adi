@@ -16,14 +16,13 @@ export class MachinesSearchComponent implements OnInit {
   showScheduler = false;
   selectedMachine: Machine | null = null;
   scheduledOperation: 'START' | 'STOP' | 'RESTART' = 'START';
-  scheduledDate: string = '';
+  scheduledDate: string = '';  // yyyy-MM-dd
+  scheduledTime: string = '';  // HH:mm  ⬅️ DODAJ OVO
   private sub?: Subscription;
 
   canSearch = false;
 
-
   allStates: Array<'ON' | 'OFF'> = ['ON', 'OFF'];
-
 
   form = this.fb.group({
     name: [''],
@@ -61,26 +60,6 @@ export class MachinesSearchComponent implements OnInit {
     this.store.disconnectWs();
   }
 
-  // onSubmit() {
-  //   this.error = '';
-  //   this.submitting = true;
-  //
-  //   try {
-  //     const v = this.form.value;
-  //     const selectedStates = this.allStates.filter((_, i) => this.statesArray.value[i]);
-  //     this.rows = this.store.search({
-  //       name: v.name ?? '',
-  //       ownerEmail: v.ownerEmail ?? '',
-  //       states: selectedStates,
-  //       fromDate: v.fromDate ?? '',
-  //       toDate: v.toDate ?? ''
-  //     });
-  //   } catch (e: any) {
-  //     this.error = e?.message ?? 'Greska pri pretrazi';
-  //   } finally {
-  //     this.submitting = false;
-  //   }
-  // }
   async onSubmit() {
     this.error = '';
     this.submitting = true;
@@ -97,8 +76,6 @@ export class MachinesSearchComponent implements OnInit {
         dateTo: (v.toDate ?? '') || undefined,
       });
 
-      // NEMA this.rows = ...
-      // rows se automatski puni preko this.store.machines$ subscribe-a
     } catch (e: any) {
       this.error = e?.error?.message ?? e?.message ?? 'Greska pri pretrazi';
     } finally {
@@ -106,17 +83,6 @@ export class MachinesSearchComponent implements OnInit {
     }
   }
 
-
-  // reset() {
-  //   this.form.reset({
-  //     name: '',
-  //     ownerEmail: '',
-  //     states: this.allStates.map(() => false),
-  //     fromDate: '',
-  //     toDate: ''
-  //   });
-  //   this.rows = this.store.listVisible();
-  // }
   async reset() {
     this.form.reset({
       name: '',
@@ -130,7 +96,7 @@ export class MachinesSearchComponent implements OnInit {
     this.submitting = true;
 
     try {
-      await this.store.refresh(); // vrati sve (za usera ili admina)
+      await this.store.refresh();
     } finally {
       this.submitting = false;
     }
@@ -175,7 +141,12 @@ export class MachinesSearchComponent implements OnInit {
   openScheduler(m: Machine) {
     this.selectedMachine = m;
     this.scheduledOperation = 'START';
-    this.scheduledDate = '';
+
+    // datetime-local format: "2026-01-17T20:30"
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 10); // default 10 min
+    this.scheduledDate = now.toISOString().slice(0, 16); // "2026-01-17T20:30"
+
     this.showScheduler = true;
   }
 
@@ -184,19 +155,32 @@ export class MachinesSearchComponent implements OnInit {
     this.selectedMachine = null;
   }
 
-  schedule() {
+  async schedule() {
     if (!this.selectedMachine || !this.scheduledDate) {
-      this.error = 'Morate izabrati operaciju i datum.';
+      this.error = 'Morate izabrati operaciju i datum/vreme.';
       return;
     }
 
-    this.store.schedule(
-      this.selectedMachine.id,
-      this.scheduledOperation,
-      this.scheduledDate
-    );
+    const scheduledDateTime = this.scheduledDate + ':00';
 
-    this.closeScheduler();
+    this.submitting = true;
+    this.error = '';
+
+    try {
+      await this.store.schedule(
+        this.selectedMachine.id,
+        this.scheduledOperation,
+        scheduledDateTime
+      );
+
+      alert(`Operacija ${this.scheduledOperation} zakazana za ${scheduledDateTime}`);
+      this.closeScheduler();
+
+    } catch (err: any) {
+      this.error = err?.error?.message ?? err?.message ?? 'Greška pri zakazivanju';
+    } finally {
+      this.submitting = false;
+    }
   }
 
   protected readonly Permission = Permission;

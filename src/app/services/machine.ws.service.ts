@@ -15,7 +15,7 @@ export class MachineWsService {
     this.client = new Client({
       webSocketFactory: () => new SockJS(`http://localhost:8080/ws`),
       reconnectDelay: 3000,
-      debug: () => {}, // ugasi log
+      debug: () => {},
     });
 
     this.client.onConnect = () => {
@@ -24,7 +24,6 @@ export class MachineWsService {
           const machine: Machine = JSON.parse(msg.body);
           this.updates$.next(machine);
         } catch {
-          // ignore
         }
       });
     };

@@ -5,9 +5,33 @@ import { Machine } from '../models/machine';
 
 export interface MachineSearchParams {
   name?: string;
-  state?: ('ON' | 'OFF')[];          // backend: ?state=ON&state=OFF
-  dateFrom?: string;                // yyyy-mm-dd
-  dateTo?: string;                  // yyyy-mm-dd
+  state?: ('ON' | 'OFF')[];
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface ScheduleOperationRequest {
+  operation: 'START' | 'STOP' | 'RESTART';
+  scheduledTime: string;
+}
+
+
+export interface ScheduledOperation {
+  id: number;
+  operation: 'START' | 'STOP' | 'RESTART';
+  scheduledTime: string;
+  executed: boolean;
+  machineId?: number;
+}
+
+
+export interface ErrorLog {
+  id: number;
+  timestamp: string;
+  machineId: number;
+  machineName: string;
+  operation: 'START' | 'STOP' | 'RESTART';
+  errorMessage: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -51,5 +75,13 @@ export class MachineService {
 
   destroy(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  scheduleOperation(id: number, request: ScheduleOperationRequest): Observable<ScheduledOperation> {
+    return this.http.post<ScheduledOperation>(`${this.base}/${id}/schedule`, request);
+  }
+
+  getErrors(): Observable<ErrorLog[]> {
+    return this.http.get<ErrorLog[]>(`${this.base}/errors`);
   }
 }

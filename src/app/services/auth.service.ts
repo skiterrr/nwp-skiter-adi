@@ -28,13 +28,6 @@ export class AuthService {
     return this.me_.value;
   }
 
-  // hasPermission(permission: Permission): boolean {
-  //   const user = this.currentUser;
-  //   if(!user) return false;
-  //   console.log("Ima permission: " + permission);
-  //   return user.permissions.length > 0 && user.permissions.includes(permission);
-  // }
-
   hasPermission(permission: Permission): boolean {
     const me = this.me;
     if (me) {

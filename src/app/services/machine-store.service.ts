@@ -1,23 +1,26 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { Machine } from '../models/machine';
-import { MachineService, MachineSearchParams } from './machine.service';
+import { MachineService, MachineSearchParams, ScheduleOperationRequest, ScheduledOperation, ErrorLog } from './machine.service';
 import { MachineWsService } from '../services/machine.ws.service';
 
-// ⬇⬇⬇ dodaj (kompatibilno sa starim komponentama)
 export interface MachineSearchArgs {
   name?: string;
-  ownerEmail?: string;              // više se NE koristi na backend-u, ignorišemo
-  states?: Array<'ON' | 'OFF'>;     // ranije MachineState[]
-  fromDate?: string;               // yyyy-mm-dd
-  toDate?: string;                 // yyyy-mm-dd
+  ownerEmail?: string;
+  states?: Array<'ON' | 'OFF'>;
+  fromDate?: string;
+  toDate?: string;
 }
-// ⬆⬆⬆
 
 @Injectable({ providedIn: 'root' })
 export class MachineStoreService {
   private machinesSubject = new BehaviorSubject<Machine[]>([]);
   machines$ = this.machinesSubject.asObservable();
+
+
+  private errorsSubject = new BehaviorSubject<ErrorLog[]>([]);
+  errors$ = this.errorsSubject.asObservable();
+
 
   private wsSub?: Subscription;
 
@@ -26,7 +29,6 @@ export class MachineStoreService {
     private ws: MachineWsService
   ) {}
 
-  // ---------------- WS ----------------
 
   connectWs(): void {
     this.ws.connect();
@@ -50,7 +52,6 @@ export class MachineStoreService {
     this.ws.disconnect();
   }
 
-  // -------------- REST core --------------
 
   refresh(params?: MachineSearchParams): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -100,21 +101,37 @@ export class MachineStoreService {
     });
   }
 
-  // -------------- COMPAT LAYER (da stare komponente rade) --------------
+  schedule(id: number, operation: 'START' | 'STOP' | 'RESTART', scheduledTime: string): Promise<ScheduledOperation> {
+    return new Promise((resolve, reject) => {
+      const request: ScheduleOperationRequest = { operation, scheduledTime };
+      this.api.scheduleOperation(id, request).subscribe({
+        next: (scheduled) => resolve(scheduled),
+        error: (err) => reject(err)
+      });
+    });
+  }
 
-  // ✅ stare komponente zovu store.listVisible()
+  loadErrors(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.api.getErrors().subscribe({
+        next: (errors) => {
+          this.errorsSubject.next(errors);
+          resolve();
+        },
+        error: (err) => reject(err)
+      });
+    });
+  }
+
+
+  getErrors(): ErrorLog[] {
+    return this.errorsSubject.value;
+  }
+
   listVisible(): Machine[] {
     return this.machinesSubject.value;
   }
 
-
-  // ✅ za sada stub, dok ne odradimo backend scheduling
-  schedule(id: number, operation: 'START' | 'STOP' | 'RESTART', date: string) {
-    // kad uradimo backend scheduling, ovde ide HTTP POST
-    console.warn('schedule() not implemented on backend yet', { id, operation, date });
-  }
-
-  // -------------- helpers --------------
 
   private callOp(req: () => any, id: number): Promise<void> {
     this.patchLocal(id, { operationInProgress: true });
@@ -139,4 +156,3 @@ export class MachineStoreService {
     }
   }
 }
-

@@ -121,12 +121,11 @@ export class MachineCreateComponent {
         return;
       }
 
-      // ✅ backend POST /machines { name }
+
       await this.store.create(name);
 
       await this.router.navigate(['/machines']);
     } catch (e: any) {
-      // Ako backend vrati 403, Angular HttpErrorResponse ima status
       const status = e?.status;
       if (status === 403) this.error = 'Nemate dozvolu (403).';
       else this.error = e?.error?.message

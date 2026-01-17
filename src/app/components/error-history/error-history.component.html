@@ -1,14 +1,23 @@
-<h2 class="mb-3">Istorija gresaka</h2>
+<h2 class="mb-3">Istorija grešaka</h2>
 
-<div *ngIf="!logs.length" class="alert alert-info">
-  Nema zabelezenih gresaka za vase masine.
+<!-- ✅ Dodaj loading i error stanja -->
+<div *ngIf="loading" class="alert alert-info">
+  Učitavam greške...
 </div>
 
-<table *ngIf="logs.length" class="table table-striped shadow-sm">
+<div *ngIf="error" class="alert alert-danger">
+  {{ error }}
+</div>
+
+<div *ngIf="!loading && !logs.length" class="alert alert-info">
+  Nema zabeleženih grešaka za vaše mašine.
+</div>
+
+<table *ngIf="!loading && logs.length" class="table table-striped shadow-sm">
   <thead class="table-light">
   <tr>
     <th>ID</th>
-    <th>Masina</th>
+    <th>Mašina</th>
     <th>Operacija</th>
     <th>Poruka</th>
     <th>Datum</th>
@@ -18,9 +27,16 @@
   <tr *ngFor="let log of logs">
     <td>{{ log.id }}</td>
     <td>{{ log.machineName }}</td>
-    <td>{{ log.operation }}</td>
-    <td>{{ log.message }}</td>
-    <td>{{ log.date | date:'dd.MM.yyyy. HH:mm' }}</td>
+    <td>
+      <span class="badge"
+            [class.bg-success]="log.operation === 'START'"
+            [class.bg-danger]="log.operation === 'STOP'"
+            [class.bg-info]="log.operation === 'RESTART'">
+        {{ log.operation }}
+      </span>
+    </td>
+    <td>{{ log.errorMessage }}</td>
+    <td>{{ log.timestamp | date:'dd.MM.yyyy. HH:mm' }}</td>
   </tr>
   </tbody>
 </table>
